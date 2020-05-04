@@ -11,7 +11,7 @@ record_name=$1                                     # Which record you want to be
 ip=$(curl -s https://ipv6.icanhazip.com/)
 
 # SCRIPT START
-echo "[Cloudflare DDNS] Check Initiated"
+echo "[Cloudflare DDNS] $record_name, Check Initiated"
 
 # Seek for the record
 record=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records?name=$record_name&type=AAAA" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json")
@@ -20,7 +20,7 @@ record=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$zone_identi
 count=$(echo "$record" | grep -Po '(?<="count": )[0-9]*' | head -1)
 
 if [[ $count == 0 ]]; then
-  >&2 echo -e "[Cloudflare DDNS] Record does not exist, perhaps create one first?"
+  >&2 echo -e "[Cloudflare DDNS] $record_name, Record does not exist, perhaps create one first?"
   exit 1
 fi
 
@@ -29,7 +29,7 @@ old_ip=$(echo "$record" | grep -Po '(?<="content": ")[^"]*' | head -1)
 
 # Compare if they're the same
 if [ $ip == $old_ip ]; then
-  echo "[Cloudflare DDNS] IP has not changed."
+  echo "[Cloudflare DDNS] $record_name, IP has not changed."
   exit 0
 fi
 
@@ -43,8 +43,8 @@ update=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$zone_identi
 success=$(echo "$update" | grep -Po '(?<="success": )[^,]*' | head -1)
 
 if [[ $success == "true" ]]; then
-  echo "[Cloudflare DDNS] IPv6 context '$ip' has been synced to Cloudflare."
+  echo "[Cloudflare DDNS] $record_name, IPv6 context '$ip' has been synced to Cloudflare."
 else
-  >&2 echo -e "[Cloudflare DDNS] Update failed. DUMPING RESULTS:\n$update"
+  >&2 echo -e "[Cloudflare DDNS] $record_name, Update failed. DUMPING RESULTS:\n$update"
   exit 1
 fi
