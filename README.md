@@ -5,7 +5,6 @@ I wanted to use it on busybox.
 # Difference from the original family
 - Made it work with the sh command.
 - The record name to be updated can be specified with the first argument. (I wanted to use it with cron.)
-
 - Supports changes to cloudflare api. (As of 2020/05/04)
 
 # Configuration
