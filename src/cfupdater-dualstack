@@ -19,14 +19,14 @@ record4=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$zone_ident
 record6=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records?name=$record_name&type=AAAA" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json")
 
 # Can't do anything without both record
-if [[ $record4 == *"\"count\":0"* || $record6 == *"\"count\":0"* ]]; then
+if [[ $record4 == *"\"count\": 0"* || $record6 == *"\"count\": 0"* ]]; then
   >&2 echo -e "[Cloudflare DDNS] Dual stack records do not exist, perhaps create them first?"
   exit 1
 fi
 
 # Set existing IP address from the fetched record
-old_ip4=$(echo "$record4" | grep -Po '(?<="content":")[^"]*' | head -1)
-old_ip6=$(echo "$record6" | grep -Po '(?<="content":")[^"]*' | head -1)
+old_ip4=$(echo "$record4" | grep -Po '(?<="content": ")[^"]*' | head -1)
+old_ip6=$(echo "$record6" | grep -Po '(?<="content": ")[^"]*' | head -1)
 
 # Compare either one is the same
 # NOTE: The script will update even one IP remains the same.
@@ -36,15 +36,15 @@ if [[ $ip4 == $old_ip4 && $ip6 == $old_ip6 ]]; then
 fi
 
 # Set the record identifier from result
-record4_identifier=$(echo "$record4" | grep -Po '(?<="id":")[^"]*' | head -1)
-record6_identifier=$(echo "$record6" | grep -Po '(?<="id":")[^"]*' | head -1)
+record4_identifier=$(echo "$record4" | grep -Po '(?<="id": ")[^"]*' | head -1)
+record6_identifier=$(echo "$record6" | grep -Po '(?<="id": ")[^"]*' | head -1)
 
 # The execution of update
 update4=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records/$record4_identifier" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json" --data "{\"id\":\"$zone_identifier\",\"type\":\"A\",\"proxied\":false,\"name\":\"$record_name\",\"content\":\"$ip4\",\"ttl\":120}")
 update6=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records/$record6_identifier" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json" --data "{\"id\":\"$zone_identifier\",\"type\":\"AAAA\",\"proxied\":false,\"name\":\"$record_name\",\"content\":\"$ip6\",\"ttl\":120}")
 
 # The moment of truth
-if [[ $update4 == *"\"success\":false"* || $update6 == *"\"success\":false"* ]]; then
+if [[ $update4 == *"\"success\": false"* || $update6 == *"\"success\": false"* ]]; then
   >&2 echo -e "[Cloudflare DDNS] Update failed. DUMPING RESULTS:\n$update4\n$update6"
   exit 1
 else
