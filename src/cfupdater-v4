@@ -5,7 +5,7 @@
 auth_email="john.appleseed@example.org"            # The email used to login 'https://dash.cloudflare.com'
 auth_key="f1nd7h47fuck1n6k3y1ncl0udfl4r3c0n50l3"   # Top right corner, "My profile" > "Global API Key"
 zone_identifier="f1nd7h3fuck1n6z0n31d3n71f13r4l50" # Can be found in the "Overview" tab of your domain
-record_name="ipv4.example.org"                     # Which record you want to be synced
+record_name=$1                                     # Which record you want to be synced
 
 # DO NOT CHANGE LINES BELOW
 ip=$(curl -s https://ipv4.icanhazip.com/)
@@ -23,7 +23,7 @@ if [[ $record == *"\"count\":0"* ]]; then
 fi
 
 # Set existing IP address from the fetched record
-old_ip=$(echo "$record" | grep -Po '(?<="content":")[^"]*' | head -1)
+old_ip=$(echo "$record" | grep -Po '(?<="content": ")[^"]*' | head -1)
 
 # Compare if they're the same
 if [ $ip == $old_ip ]; then
@@ -32,14 +32,14 @@ if [ $ip == $old_ip ]; then
 fi
 
 # Set the record identifier from result
-record_identifier=$(echo "$record" | grep -Po '(?<="id":")[^"]*' | head -1)
+record_identifier=$(echo "$record" | grep -Po '(?<="id": ")[^"]*' | head -1)
 
 # The execution of update
 update=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records/$record_identifier" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json" --data "{\"id\":\"$zone_identifier\",\"type\":\"A\",\"proxied\":false,\"name\":\"$record_name\",\"content\":\"$ip\",\"ttl\":120}")
 
 # The moment of truth
 case "$update" in
-*"\"success\":false"*)
+*"\"success\": false"*)
   >&2 echo -e "[Cloudflare DDNS] Update failed for $record_identifier. DUMPING RESULTS:\n$update"
   exit 1;;
 *)
