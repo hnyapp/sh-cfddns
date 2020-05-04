@@ -8,7 +8,7 @@ I wanted to use it on busybox.
 
 - Supports changes to cloudflare api. (As of 2020/05/04)
 
-# config
+# Configuration
 Change the following variables in the script.
 
 auth_email="john.appleseed@example.org"            # The email used to login 'https://dash.cloudflare.com'
