@@ -29,7 +29,7 @@ old_ip=$(echo "$record" | grep -Po '(?<="content": ")[^"]*' | head -1)
 
 # Compare if they're the same
 if [ $ip == $old_ip ]; then
-  echo "[Cloudflare DDNS] IP has not changed." | systemd-cat -p notice
+  echo "[Cloudflare DDNS] IP has not changed."
   exit 0
 fi
 
