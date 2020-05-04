@@ -14,10 +14,12 @@ ip=$(curl -s https://ipv6.icanhazip.com/)
 echo "[Cloudflare DDNS] Check Initiated"
 
 # Seek for the record
-record=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records?name=$record_name" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json")
+record=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records?name=$record_name&type=AAAA" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json")
 
 # Can't do anything without the record
-if [[ $record == *"\"count\": 0"* ]]; then
+count=$(echo "$record" | grep -Po '(?<="count": )[0-9]*' | head -1)
+
+if [[ $count == 0 ]]; then
   >&2 echo -e "[Cloudflare DDNS] Record does not exist, perhaps create one first?"
   exit 1
 fi
@@ -35,13 +37,14 @@ fi
 record_identifier=$(echo "$record" | grep -Po '(?<="id": ")[^"]*' | head -1)
 
 # The execution of update
-update=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records/$record_identifier" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json" --data "{\"id\":\"$zone_identifier\",\"type\":\"AAAA\",\"proxied\":false,\"name\":\"$record_name\",\"content\":\"$ip\",\"ttl\":120}")
+update=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records/$record_identifier" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json" --data "{\"id\":\"$zone_identifier\",\"type\":\"AAAA\",\"proxied\":false,\"name\":\"$record_name\",\"content\":\"$ip\",\"ttl\":1}")
 
 # The moment of truth
-case "$update" in
-*"\"success\": false"*)
-  >&2 echo -e "[Cloudflare DDNS] Update failed for $record_identifier. DUMPING RESULTS:\n$update"
-  exit 1;;
-*)
-  echo "[Cloudflare DDNS] IPv6 address '$ip' has been synced to Cloudflare.";;
-esac
+success=$(echo "$update" | grep -Po '(?<="success": )[^,]*' | head -1)
+
+if [[ $success == "true" ]]; then
+  echo "[Cloudflare DDNS] IPv6 context '$ip' has been synced to Cloudflare."
+else
+  >&2 echo -e "[Cloudflare DDNS] Update failed. DUMPING RESULTS:\n$update"
+  exit 1
+fi
