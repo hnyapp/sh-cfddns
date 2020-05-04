@@ -3,6 +3,7 @@ Bash script to emulate DDNS client for Cloudflare-managed domain
 
 # Difference from the original family
 -The record name to be updated can be specified with the first argument. (I wanted to use it with cron.)
+-Supports changes to cloudflare api. (As of 2020/05/04)
 
 # config
 Change the following variables in the script.
