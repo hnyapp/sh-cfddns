@@ -43,7 +43,7 @@ update=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$zone_identi
 success=$(echo "$update" | grep -Po '(?<="success": )[^,]*' | head -1)
 
 if [[ $success == "true" ]]; then
-  echo "[Cloudflare DDNS] $record_name, IPv6 context '$ip' has been synced to Cloudflare."
+  echo "[Cloudflare DDNS] $record_name, IPv4 context '$ip' has been synced to Cloudflare."
 else
   >&2 echo -e "[Cloudflare DDNS] $record_name, Update failed. DUMPING RESULTS:\n$update"
   exit 1
