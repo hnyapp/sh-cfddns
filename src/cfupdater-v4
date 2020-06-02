@@ -17,7 +17,7 @@ echo "[Cloudflare DDNS] $record_name, Check Initiated"
 record=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records?name=$record_name&type=A" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json")
 
 # Can't do anything without the record
-count=$(echo "$record" | grep -Po '(?<="count": )[0-9]*' | head -1)
+count=$(echo "$record" | grep -Po '(?<="count":)[0-9]*' | head -1)
 
 if [[ $count == 0 ]]; then
   >&2 echo -e "[Cloudflare DDNS] $record_name, Record does not exist, perhaps create one first?"
@@ -25,7 +25,7 @@ if [[ $count == 0 ]]; then
 fi
 
 # Set existing IP address from the fetched record
-old_ip=$(echo "$record" | grep -Po '(?<="content": ")[^"]*' | head -1)
+old_ip=$(echo "$record" | grep -Po '(?<="content":")[^"]*' | head -1)
 
 # Compare if they're the same
 if [ $ip == $old_ip ]; then
@@ -34,13 +34,13 @@ if [ $ip == $old_ip ]; then
 fi
 
 # Set the record identifier from result
-record_identifier=$(echo "$record" | grep -Po '(?<="id": ")[^"]*' | head -1)
+record_identifier=$(echo "$record" | grep -Po '(?<="id":")[^"]*' | head -1)
 
 # The execution of update
 update=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records/$record_identifier" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json" --data "{\"id\":\"$zone_identifier\",\"type\":\"A\",\"proxied\":false,\"name\":\"$record_name\",\"content\":\"$ip\",\"ttl\":1}")
 
 # The moment of truth
-success=$(echo "$update" | grep -Po '(?<="success": )[^,]*' | head -1)
+success=$(echo "$update" | grep -Po '(?<="success":)[^,]*' | head -1)
 
 if [[ $success == "true" ]]; then
   echo "[Cloudflare DDNS] $record_name, IPv4 context '$ip' has been synced to Cloudflare."
